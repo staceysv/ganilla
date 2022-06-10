@@ -2,7 +2,7 @@ import os
 import torch
 from collections import OrderedDict
 from . import networks
-
+import wandb
 
 class BaseModel():
 
@@ -38,8 +38,12 @@ class BaseModel():
     def setup(self, opt, parser=None):
         if self.isTrain:
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
-
-        if not self.isTrain or opt.continue_train:
+        if opt.from_artifact:
+            model_at = wandb.run.use_artifact(opt.from_artifact)
+            model_dir = model_at.download()
+            load_path = model_dir + "/net_G.pth"
+            self.load_network_from_artifact(load_path)
+        elif not self.isTrain or opt.continue_train:
             self.load_networks(opt.epoch)
         self.print_networks(opt.verbose)
 
@@ -124,6 +128,24 @@ class BaseModel():
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
                 print('loading the model from %s' % load_path)
+                # if you are using PyTorch newer than 0.4 (e.g., built from
+                # GitHub source), you can remove str() on self.device
+                state_dict = torch.load(load_path, map_location=str(self.device))
+                if hasattr(state_dict, '_metadata'):
+                    del state_dict._metadata
+
+                # patch InstanceNorm checkpoints prior to 0.4
+                for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
+                    self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
+                net.load_state_dict(state_dict)
+
+    def load_network_from_artifact(self, load_path):
+        for name in self.model_names:
+            if isinstance(name, str):
+                net = getattr(self, 'net' + name)
+                if isinstance(net, torch.nn.DataParallel):
+                    net = net.module
+                print('loading the artifact from %s' % load_path)
                 # if you are using PyTorch newer than 0.4 (e.g., built from
                 # GitHub source), you can remove str() on self.device
                 state_dict = torch.load(load_path, map_location=str(self.device))
