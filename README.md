@@ -7,6 +7,9 @@ GANILLA: Generative Adversarial Networks for Image to Illustration Translation.
 [Paper](https://www.sciencedirect.com/science/article/pii/S0262885620300184)
 [Arxiv](https://arxiv.org/abs/2002.05638)
 
+## Updates
+
+- (February, 2021) We released code for our recent work on sketch colorization [Adversarial Segmentation Loss for Sketch Colorization](https://github.com/giddyyupp/AdvSegLoss).
 
 **Dataset Stats:**
 
@@ -37,7 +40,7 @@ GANILLA: Generative Adversarial Networks for Image to Illustration Translation.
 ![GANILLA ablation](docs/figs/ablation_experiments.png)
 
 ## Prerequisites
-- Linux or macOS
+- Linux, macOS or Windows
 - Python 2 or 3
 - CPU or NVIDIA GPU + CUDA CuDNN
 
@@ -106,6 +109,8 @@ python test.py --dataroot ./datasets/monet2photo/testB/ --name {your_trained_mod
 ```
 You might want to specify `--netG` to match the generator architecture of the trained model.
 
+## Style & Content CNN
+We shared style & content CNNs in this [repo](https://github.com/giddyyupp/style-content-cnn). It contains train/test procedure as well as pretrained weights for both cnns.
 
 ## [Training/Test Tips](docs/tips.md)
 Best practice for training and testing your models.
